@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Annotate · 样式预览</title>
+<style>
+:root{
+  --pdfa-yellow:#ffd400;--pdfa-green:#34c759;--pdfa-blue:#0a84ff;--pdfa-pink:#ff5c8a;
+  --pdfa-radius-sm:8px;--pdfa-radius-md:12px;--pdfa-radius-lg:16px;--pdfa-radius-pill:999px;
+  --pdfa-shadow-sm:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --pdfa-shadow-md:0 4px 12px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.10);
+  --pdfa-shadow-lg:0 8px 24px rgba(0,0,0,.10),0 24px 64px rgba(0,0,0,.16);
+  --pdfa-ease:cubic-bezier(.4,0,.2,1);--pdfa-transition:180ms var(--pdfa-ease);
+}
+:root[data-theme="light"]{
+  --background-primary:#ffffff;--background-secondary:#f4f5f7;
+  --background-modifier-border:#e6e8eb;--background-modifier-border-hover:#d7d9dd;
+  --background-modifier-hover:#eef0f2;--text-normal:#2b2f36;--text-muted:#6b7280;
+  --text-faint:#9ca3af;--text-on-accent:#ffffff;--text-error:#e5484d;
+  --interactive-accent:#7c5cff;--page-bg:#fbfbfc;--body-bg:#eef0f4;
+}
+:root[data-theme="dark"]{
+  --background-primary:#1c1d21;--background-secondary:#25262b;
+  --background-modifier-border:#37383f;--background-modifier-border-hover:#4a4c55;
+  --background-modifier-hover:#2e2f35;--text-normal:#e6e6e9;--text-muted:#a1a1aa;
+  --text-faint:#71717a;--text-on-accent:#1c1d21;--text-error:#ff6369;
+  --interactive-accent:#9b8aff;--page-bg:#26272c;--body-bg:#131417;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--body-bg);color:var(--text-normal);padding:28px 32px 60px;transition:background .3s,color .3s;}
+.topbar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 26px;}
+.topbar h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.02em;}
+.topbar h1 span{color:var(--interactive-accent);}
+.theme-toggle{border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);
+  padding:8px 16px;border-radius:var(--pdfa-radius-pill);cursor:pointer;font-size:13px;box-shadow:var(--pdfa-shadow-sm);}
+.grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.panel{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:var(--pdfa-radius-lg);
+  padding:20px;box-shadow:var(--pdfa-shadow-sm);}
+.panel.wide{grid-column:1/-1;}
+.panel-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-faint);margin-bottom:16px;}
+.panel-label b{color:var(--interactive-accent);}
+
+/* 预览容器定位覆盖 */
+.stage{position:relative;}
+.stage .pdfa-float-palette{position:relative!important;display:flex!important;top:auto!important;left:auto!important;margin:0 auto;width:max-content;}
+.mock-page{background:var(--page-bg);border:1px solid var(--background-modifier-border);border-radius:var(--pdfa-radius-md);
+  padding:34px 30px;line-height:2;font-size:15px;color:var(--text-normal);position:relative;}
+.mock-page .sel{background:color-mix(in srgb,var(--interactive-accent) 26%,transparent);border-radius:3px;padding:1px 0;}
+.palette-wrap{padding:44px 0 10px;}
+
+/* 弹窗容器 */
+.modal-shell{background:var(--background-primary);border:1px solid var(--background-modifier-border);
+  border-radius:var(--pdfa-radius-lg);box-shadow:var(--pdfa-shadow-lg);padding:24px;width:max-content;max-width:100%;margin:0 auto;}
+
+/* 侧边栏容器 */
+.sidebar-shell{background:var(--background-primary);border:1px solid var(--background-modifier-border);
+  border-radius:var(--pdfa-radius-lg);width:340px;max-width:100%;box-shadow:var(--pdfa-shadow-sm);overflow:hidden;}
+
+/* ==== 真实插件样式 ==== */
+/* ============================================================
+   PDF Annotate — 现代简约风格
+   设计原则：留白、层次、柔和阴影、细腻过渡、主题自适应
+   ============================================================ */
+
+/* ---------- 设计令牌 ---------- */
+:root {
+  --pdfa-yellow: #ffd400;
+  --pdfa-green: #34c759;
+  --pdfa-blue: #0a84ff;
+  --pdfa-pink: #ff5c8a;
+
+  --pdfa-radius-sm: 8px;
+  --pdfa-radius-md: 12px;
+  --pdfa-radius-lg: 16px;
+  --pdfa-radius-pill: 999px;
+
+  --pdfa-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --pdfa-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.10);
+  --pdfa-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10), 0 24px 64px rgba(0, 0, 0, 0.16);
+
+  --pdfa-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pdfa-transition: 180ms var(--pdfa-ease);
+}
+
+/* ---------- PDF 高亮层 ---------- */
+.pdfa-highlight-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pdfa-mark {
+  border-radius: 3px;
+  transition: filter var(--pdfa-transition);
+}
+.pdfa-mark:hover {
+  filter: saturate(1.3) brightness(0.96);
+}
+.pdfa-mark-dim {
+  opacity: 0.35;
+}
+
+@keyframes pdfa-flash {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 3px var(--interactive-accent); }
+}
+.pdfa-flash {
+  animation: pdfa-flash 0.6s var(--pdfa-ease) 2;
+}
+
+/* ============================================================
+   浮动标注工具条
+   ============================================================ */
+.pdfa-float-palette {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: var(--background-primary);
+  background: color-mix(in srgb, var(--background-primary) 88%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--pdfa-radius-pill);
+  box-shadow: var(--pdfa-shadow-md);
+  animation: pdfa-pop-in 200ms var(--pdfa-ease);
+}
+
+@keyframes pdfa-pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 分段控件容器 */
+.pdfa-palette-types,
+.pdfa-palette-colors {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--background-modifier-hover);
+  border-radius: var(--pdfa-radius-pill);
+}
+
+/* 类型按钮（图标化） */
+.pdfa-palette-types .pdfa-type-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: var(--pdfa-radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-palette-types .pdfa-type-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.pdfa-palette-types .pdfa-type-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  transform: translateY(-1px);
+}
+.pdfa-palette-types .pdfa-type-btn.is-active {
+  background: var(--background-primary);
+  color: var(--interactive-accent);
+  box-shadow: var(--pdfa-shadow-sm);
+}
+
+/* 颜色圆点 */
+.pdfa-palette-colors .pdfa-color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  transition: transform var(--pdfa-transition), box-shadow var(--pdfa-transition);
+}
+.pdfa-palette-colors .pdfa-color-dot:hover {
+  transform: scale(1.15);
+}
+.pdfa-palette-colors .pdfa-color-dot.is-active {
+  border-color: var(--background-primary);
+  box-shadow: 0 0 0 2px var(--text-muted);
+  transform: scale(1.1);
+}
+
+/* 应用按钮 */
+.pdfa-apply-btn {
+  height: 32px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--pdfa-radius-pill);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--pdfa-shadow-sm);
+}
+
+/* 分组间的分隔线 */
+.pdfa-float-palette .pdfa-palette-colors::before {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--background-modifier-border);
+}
+
+/* ============================================================
+   评论弹窗
+   ============================================================ */
+.pdfa-comment-modal {
+  min-width: 420px;
+  animation: pdfa-modal-in 260ms var(--pdfa-ease);
+}
+
+@keyframes pdfa-modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pdfa-comment-modal h3 {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* 引用原文卡片 */
+.pdfa-quote {
+  position: relative;
+  padding: 12px 14px 12px 18px;
+  margin-bottom: 18px;
+  background: var(--background-secondary);
+  border-radius: var(--pdfa-radius-md);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  overflow: hidden;
+}
+.pdfa-quote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--interactive-accent), transparent);
+}
+.pdfa-quote > span:first-child {
+  color: var(--interactive-accent);
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+/* 颜色选择行 */
+.pdfa-color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--pdfa-radius-sm);
+}
+.pdfa-color-row > span {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.pdfa-color-row .pdfa-color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  transition: all var(--pdfa-transition);
+}
+.pdfa-color-row .pdfa-color-dot:hover { transform: scale(1.12); }
+.pdfa-color-row .pdfa-color-dot.is-active {
+  border-color: var(--background-primary);
+  box-shadow: 0 0 0 2px var(--text-muted);
+  transform: scale(1.08);
+}
+
+/* 评论输入框 */
+.pdfa-comment-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  border-radius: var(--pdfa-radius-md);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  transition: border-color var(--pdfa-transition), box-shadow var(--pdfa-transition);
+}
+.pdfa-comment-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px var(--background-modifier-border-hover);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+.pdfa-comment-input::placeholder { color: var(--text-faint); }
+
+/* Markdown 预览 */
+.pdfa-comment-preview {
+  margin-top: 10px;
+  padding: 12px 14px;
+  min-height: 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  background: var(--background-secondary);
+  border-radius: var(--pdfa-radius-md);
+}
+.pdfa-comment-preview:empty { display: none; }
+
+/* 弹窗按钮区 */
+.pdfa-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.pdfa-modal-actions button {
+  height: 34px;
+  padding: 0 18px;
+  border-radius: var(--pdfa-radius-sm);
+  font-weight: 500;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-modal-actions button:hover { transform: translateY(-1px); }
+.pdfa-modal-actions .pdfa-delete-btn {
+  margin-right: auto;
+}
+.pdfa-modal-actions .pdfa-delete-btn:hover {
+  box-shadow: var(--pdfa-shadow-sm);
+}
+
+/* ============================================================
+   标注侧边栏
+   ============================================================ */
+.pdfa-sidebar {
+  padding: 0 16px 24px;
+}
+
+.pdfa-sidebar-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 16px 0 14px;
+  background: var(--background-primary);
+}
+.pdfa-sidebar-header h4 {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text-normal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pdfa-sidebar-header h4::before {
+  content: "💬";
+  font-size: 14px;
+}
+
+/* 搜索框 */
+.pdfa-search {
+  width: 100%;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 14px;
+  margin-bottom: 12px;
+  border-radius: var(--pdfa-radius-sm);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-size: 13px;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-search:focus {
+  outline: none;
+  background: var(--background-primary);
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px var(--background-modifier-border-hover);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+}
+
+/* 状态筛选（胶囊分段控件） */
+.pdfa-filter-row {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--background-secondary);
+  border-radius: var(--pdfa-radius-sm);
+}
+.pdfa-filter-btn {
+  flex: 1;
+  height: 28px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-filter-btn:hover { color: var(--text-normal); }
+.pdfa-filter-btn.is-active {
+  background: var(--background-primary);
+  color: var(--interactive-accent);
+  box-shadow: var(--pdfa-shadow-sm);
+}
+
+/* 页码标题 */
+.pdfa-page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin: 20px 0 10px;
+}
+.pdfa-page-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--background-modifier-border);
+}
+
+/* 标注卡片 */
+.pdfa-annot-card {
+  position: relative;
+  padding: 14px 14px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--pdfa-radius-md);
+  background: var(--background-primary);
+  box-shadow: var(--pdfa-shadow-sm);
+  transition: all var(--pdfa-transition);
+  overflow: hidden;
+}
+.pdfa-annot-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--pdfa-yellow);
+}
+.pdfa-annot-card.pdfa-mark-yellow::before { background: var(--pdfa-yellow); }
+.pdfa-annot-card.pdfa-mark-green::before { background: var(--pdfa-green); }
+.pdfa-annot-card.pdfa-mark-blue::before { background: var(--pdfa-blue); }
+.pdfa-annot-card.pdfa-mark-pink::before { background: var(--pdfa-pink); }
+.pdfa-annot-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pdfa-shadow-md);
+  border-color: var(--interactive-accent);
+  border-color: color-mix(in srgb, var(--interactive-accent) 30%, var(--background-modifier-border));
+}
+.pdfa-annot-card.is-resolved {
+  opacity: 0.55;
+}
+.pdfa-annot-card.is-resolved:hover { opacity: 0.8; }
+
+/* 引文 */
+.pdfa-annot-quote {
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: pointer;
+  color: var(--text-normal);
+  padding-left: 2px;
+  transition: color var(--pdfa-transition);
+}
+.pdfa-annot-quote:hover { color: var(--interactive-accent); }
+
+/* 评论内容 */
+.pdfa-annot-comment {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--pdfa-radius-sm);
+  background: var(--background-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.pdfa-annot-comment p { margin: 0 0 4px; }
+.pdfa-annot-comment p:last-child { margin-bottom: 0; }
+.pdfa-annot-comment:empty { display: none; }
+
+/* 卡片底部元信息 */
+.pdfa-annot-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pdfa-mini-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.pdfa-status-text {
+  font-size: 11px;
+  color: var(--text-faint);
+  flex: 1;
+  font-weight: 500;
+}
+
+/* 卡片操作按钮 */
+.pdfa-annot-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0.6;
+  transition: opacity var(--pdfa-transition);
+}
+.pdfa-annot-card:hover .pdfa-annot-actions { opacity: 1; }
+.pdfa-mini-btn {
+  height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--pdfa-transition);
+}
+.pdfa-mini-btn:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  transform: translateY(-1px);
+}
+.pdfa-mini-btn-danger { color: var(--text-error); }
+.pdfa-mini-btn-danger:hover {
+  background: var(--text-error);
+  color: var(--background-primary);
+}
+
+/* 空状态 */
+.pdfa-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pdfa-empty::before {
+  content: "📝";
+  font-size: 32px;
+  opacity: 0.6;
+}
+
+/* ---------- 降低动画偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .pdfa-float-palette,
+  .pdfa-comment-modal { animation: none; }
+  .pdfa-mark,
+  .pdfa-annot-card,
+  .pdfa-mini-btn,
+  .pdfa-filter-btn,
+  .pdfa-color-dot,
+  .pdfa-type-btn,
+  .pdfa-apply-btn { transition: none; }
+}
+
+</style>
+</head>
+<body data-theme-body>
+<div class="topbar">
+  <h1>PDF Annotate <span>· 现代简约样式预览</span></h1>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 切换深色主题</button>
+</div>
+
+<div class="grid">
+  <!-- 浮动工具条 -->
+  <div class="panel wide">
+    <div class="panel-label"><b>01</b> &nbsp; 浮动标注工具条 · 选中文字后浮现</div>
+    <div class="stage">
+      <div class="mock-page">
+        本书的第一部分介绍编写 <span class="sel">Python 程序所需要熟悉的基本概念</span>，其中很多都适用于所有编程语言，因此它们在你的整个程序员生涯中都很有用。
+        <div class="palette-wrap">
+          <div class="pdfa-float-palette">
+            <div class="pdfa-palette-types">
+              <button class="pdfa-type-btn is-active" title="高亮"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg></button>
+              <button class="pdfa-type-btn" title="下划线"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M4 20h16"/></svg></button>
+              <button class="pdfa-type-btn" title="删除线"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><path d="M4 12h16"/></svg></button>
+            </div>
+            <div class="pdfa-palette-colors">
+              <div class="pdfa-color-dot is-active" style="background:#ffd400"></div>
+              <div class="pdfa-color-dot" style="background:#34c759"></div>
+              <div class="pdfa-color-dot" style="background:#0a84ff"></div>
+              <div class="pdfa-color-dot" style="background:#ff5c8a"></div>
+            </div>
+            <button class="mod-cta pdfa-apply-btn">标注</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 评论弹窗 -->
+  <div class="panel">
+    <div class="panel-label"><b>02</b> &nbsp; 评论弹窗 · 点击高亮后编辑</div>
+    <div class="modal-shell pdfa-comment-modal">
+      <h3>编辑标注</h3>
+      <div class="pdfa-quote"><span>❝</span><span>其中很多都适用于所有编程语言，因此它们在你的整个程序员生涯中都很有用。</span></div>
+      <div class="pdfa-color-row">
+        <span>颜色</span>
+        <div class="pdfa-color-dot is-active" style="background:#ffd400"></div>
+        <div class="pdfa-color-dot" style="background:#34c759"></div>
+        <div class="pdfa-color-dot" style="background:#0a84ff"></div>
+        <div class="pdfa-color-dot" style="background:#ff5c8a"></div>
+      </div>
+      <div class="setting-item-heading" style="font-size:13px;font-weight:600;margin-bottom:8px;">评论（支持 Markdown）</div>
+      <textarea class="pdfa-comment-input" placeholder="写下你的想法，Ctrl/Cmd + Enter 保存…">这是 **核心概念**，写综述时重点引用。</textarea>
+      <div class="pdfa-comment-preview"><p>这是<strong>核心概念</strong>，写综述时重点引用。</p></div>
+      <div class="pdfa-modal-actions">
+        <button class="mod-warning pdfa-delete-btn">删除标注</button>
+        <button>取消</button>
+        <button class="mod-cta">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 侧边栏 -->
+  <div class="panel">
+    <div class="panel-label"><b>03</b> &nbsp; 标注侧边栏 · 按页分组管理</div>
+    <div class="sidebar-shell pdfa-sidebar">
+      <div class="pdfa-sidebar-header">
+        <h4>标注 · python-guide.pdf</h4>
+        <input class="pdfa-search" type="text" placeholder="搜索标注…">
+        <div class="pdfa-filter-row">
+          <button class="pdfa-filter-btn is-active">全部</button>
+          <button class="pdfa-filter-btn">待处理</button>
+          <button class="pdfa-filter-btn">已解决</button>
+        </div>
+      </div>
+      <div class="pdfa-page-title">第 12 页</div>
+      <div class="pdfa-annot-card pdfa-mark-yellow">
+        <div class="pdfa-annot-quote">❝ Python 程序所需要熟悉的基本概念</div>
+        <div class="pdfa-annot-comment"><p>这是<strong>核心概念</strong>，写综述时重点引用。</p></div>
+        <div class="pdfa-annot-meta">
+          <span class="pdfa-mini-dot" style="background:#ffd400"></span>
+          <span class="pdfa-status-text">待处理</span>
+          <div class="pdfa-annot-actions">
+            <button class="pdfa-mini-btn">跳转</button>
+            <button class="pdfa-mini-btn">解决</button>
+            <button class="pdfa-mini-btn">编辑</button>
+            <button class="pdfa-mini-btn pdfa-mini-btn-danger">删除</button>
+          </div>
+        </div>
+      </div>
+      <div class="pdfa-annot-card pdfa-mark-blue">
+        <div class="pdfa-annot-quote">❝ 其中很多都适用于所有编程语言</div>
+        <div class="pdfa-annot-comment"><p>与 Smith 2020 的论点对比讨论。</p></div>
+        <div class="pdfa-annot-meta">
+          <span class="pdfa-mini-dot" style="background:#0a84ff"></span>
+          <span class="pdfa-status-text">待处理</span>
+          <div class="pdfa-annot-actions">
+            <button class="pdfa-mini-btn">跳转</button>
+            <button class="pdfa-mini-btn">解决</button>
+            <button class="pdfa-mini-btn">编辑</button>
+            <button class="pdfa-mini-btn pdfa-mini-btn-danger">删除</button>
+          </div>
+        </div>
+      </div>
+      <div class="pdfa-page-title">第 18 页</div>
+      <div class="pdfa-annot-card pdfa-mark-green is-resolved">
+        <div class="pdfa-annot-quote">❝ 它们在你的整个程序员生涯中都很有用</div>
+        <div class="pdfa-annot-comment"></div>
+        <div class="pdfa-annot-meta">
+          <span class="pdfa-mini-dot" style="background:#34c759"></span>
+          <span class="pdfa-status-text">已解决</span>
+          <div class="pdfa-annot-actions">
+            <button class="pdfa-mini-btn">跳转</button>
+            <button class="pdfa-mini-btn">重开</button>
+            <button class="pdfa-mini-btn">编辑</button>
+            <button class="pdfa-mini-btn pdfa-mini-btn-danger">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleTheme(){
+  const r=document.documentElement;
+  const cur=r.getAttribute('data-theme')||'light';
+  const next=cur==='light'?'dark':'light';
+  r.setAttribute('data-theme',next);
+  document.body.setAttribute('data-theme-body',next);
+  document.querySelector('.theme-toggle').textContent = next==='light'?'🌙 切换深色主题':'☀️ 切换浅色主题';
+}
+document.documentElement.setAttribute('data-theme','light');
+</script>
+</body>
+</html>
