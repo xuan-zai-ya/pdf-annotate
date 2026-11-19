@@ -73,7 +73,6 @@
   align-items: center;
   gap: 6px;
   padding: 6px;
-  background: var(--background-primary);
   background: color-mix(in srgb, var(--background-primary) 88%, transparent);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -272,7 +271,6 @@
 .pdfa-comment-input:focus {
   outline: none;
   border-color: var(--interactive-accent);
-  box-shadow: 0 0 0 3px var(--background-modifier-border-hover);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
 }
 .pdfa-comment-input::placeholder { color: var(--text-faint); }
@@ -361,7 +359,6 @@
   outline: none;
   background: var(--background-primary);
   border-color: var(--interactive-accent);
-  box-shadow: 0 0 0 3px var(--background-modifier-border-hover);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 15%, transparent);
 }
 
@@ -440,7 +437,6 @@
 .pdfa-annot-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--pdfa-shadow-md);
-  border-color: var(--interactive-accent);
   border-color: color-mix(in srgb, var(--interactive-accent) 30%, var(--background-modifier-border));
 }
 .pdfa-annot-card.is-resolved {

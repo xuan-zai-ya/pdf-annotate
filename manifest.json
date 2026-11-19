@@ -3,8 +3,9 @@
   "name": "PDF Annotate",
   "version": "1.0.0",
   "minAppVersion": "1.7.2",
-  "description": "PDF 视图中对文字高亮、下划线、删除线并添加 Markdown 评论,标注不改动原文件,缩放贴合、翻页稳定，另含可选单页视图.",
+  "description": "Highlight, underline, and strikethrough text in PDF view and attach Markdown comments. Annotations stay aligned on zoom and stable across page turns — without modifying the original PDF. Includes an optional single-page view.",
   "author": "xuanzai",
+  "authorUrl": "https://github.com/xuan-zai-ya",
   "isDesktopOnly": false
 }
 
