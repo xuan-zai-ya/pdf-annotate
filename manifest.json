@@ -3,7 +3,7 @@
   "name": "PDF Annotate",
   "version": "1.0.0",
   "minAppVersion": "1.7.2",
-  "description": "在 Obsidian 原生 PDF 视图中对文字高亮、下划线、删除线并添加 Markdown 评论，标注不改动原文件，缩放贴合、翻页稳定，另含可选单页视图。",
+  "description": "PDF 视图中对文字高亮、下划线、删除线并添加 Markdown 评论,标注不改动原文件,缩放贴合、翻页稳定，另含可选单页视图.",
   "author": "xuanzai",
   "isDesktopOnly": false
 }
